@@ -1,0 +1,5 @@
+module.exports = {
+	SERVER_PORT: 3000,
+	REDIS_PORT: 6379,
+	DB_URL: 'mongodb://localhost/database',
+};
