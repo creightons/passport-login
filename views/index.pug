@@ -3,4 +3,16 @@ html
 	head
 		meta(charset='utf-8')
 	body
-		div This is the main page
+		div This is the index login page
+		form(action='/login' method='post')
+			div
+				label(for='name') Username
+				input(type='text' id='name' name='username')
+			
+			div
+				label(for='password') Password
+				input(type='text' id='password' name='password')
+			
+			button(type='submit') Submit
+	
+	script(src='/public/main.js')

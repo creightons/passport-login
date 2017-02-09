@@ -1,21 +1,44 @@
-var app = require('express')(),
+var express = require('express'),
+	app = express(),
 	passport = require('passport'),
 	session = require('express-session'),
-	redis = require('connect-redis')(session),
+	bodyParser = require('body-parser'),
+	cookieParser = require('cookie-parser'),
 	config = require('./config'),
+	mongoose = require('mongoose'),
 	startPassport = require('./passport.config');
-	
+
+
+mongoose.connect(config.DB_URL);
+
+//RedisStore = require('connect-redis')(session);
+/*	
 app.use(session({
-	store: new redis({
+	store: new RedisStore({
 		host: config.REDIS_HOST,
 		port: config.REDIS_PORT,
 	}),
 	secret: config.REDIS_SECRET,
 }));
+*/
+
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: false
+}));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 startPassport();
 app.use(passport.initialize());
 app.use(passport.session());
+
+
+
+app.use('/public', express.static('public'));
 
 app.set('view engine', 'pug');
 app.set('views', __dirname + '/views');
@@ -30,4 +53,38 @@ app.use((req, res, next) => {
 	next();
 });
 
+function isAuthenticated(req, res, next) {
+	console.log('is authenticated: ', req.isAuthenticated());
+	if (req.isAuthenticated()) { return next() };
+	return res.redirect('/');
+}
+
 app.get('/', (req, res) => res.render('index'));
+
+/*
+app.post('/login',
+	passport.authenticate('local',  { failureRedirect: '/'}),
+	(req, res) => {
+		res.redirect('/main');
+	}
+);
+*/
+
+function authenticator(req, res, next) {
+	passport.authenticate('local', function(err, user) {
+		console.log('user = ', user);
+		if (!user) { return res.redirect('/login'); }
+		req.login(user, function(err) {
+			if (err) { return next(err); }
+			console.log(req);
+			return res.redirect('/main');
+		});
+	})(req, res, next);
+}
+
+app.post('/login', authenticator);
+
+app.get('/main', isAuthenticated, (req, res) => {
+	console.log('request');
+	res.render('main');
+});
