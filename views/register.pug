@@ -1,0 +1,23 @@
+doctype html
+
+html
+	head
+		meta(charset='utf-8')
+	body
+		h1 Join us now
+
+#exists
+		if exists
+			h3(style='color: red;') Username already exists
+
+		form(action='/register' method='post')
+			div
+				label(for='name') Username
+				input(type='text' id='name' name='username')
+			div
+				label(for='password') Password
+				input(type='password' if='password' name='password')
+			button(type='submit') Submit
+
+		a(href='/')
+			button Back			

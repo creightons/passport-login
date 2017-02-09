@@ -1,5 +1,9 @@
 module.exports = {
 	SERVER_PORT: 3000,
 	REDIS_PORT: 6379,
+	REDIS_HOST: 'localhost',
+	REDIS_SECRET: 'Real Big Secret',
 	DB_URL: 'mongodb://localhost/database',
+	GOOGLE_OAUTH_CLIENT_ID: 'Some Google Client Id',
+	GOOGLE_OAUTH_CLIENT_SECRET: 'Some Google Client Secret',
 };

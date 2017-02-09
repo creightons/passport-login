@@ -6,8 +6,8 @@ var express = require('express'),
 	cookieParser = require('cookie-parser'),
 	config = require('./config'),
 	mongoose = require('mongoose'),
+	User = require('./user.model'),
 	startPassport = require('./passport.config');
-
 
 mongoose.connect(config.DB_URL);
 
@@ -27,7 +27,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-startPassport();
+// Apply all passport configurations
+startPassport(passport);
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -51,8 +53,36 @@ function isAuthenticated(req, res, next) {
 	return res.redirect('/');
 }
 
+// Get the main page
 app.get('/', (req, res) => res.render('index'));
 
+// Get sign up page
+app.get('/register', (req, res) => res.render('register'));
+
+// Send new account credentials
+app.post('/register', (req, res, next) => {
+	User.findOne({ username: req.body.username }).then(user => {
+		if (user) {
+			return res.render('register', { exists: true })
+		}
+
+		var newUser = User({
+			username: req.body.username,
+			password: req.body.password,
+		});
+
+		return newUser.save().then(() => {
+			req.login(newUser, (err) => {
+				if (err) { return next(err); }
+				return res.redirect('/main');
+			});
+		});
+	}).catch(
+		err => next(err)
+	);
+});
+
+// Login with local authentication
 app.post('/login',
 	passport.authenticate('local',  { failureRedirect: '/'}),
 	(req, res) => {
@@ -60,11 +90,25 @@ app.post('/login',
 	}
 );
 
+// Login using Google OAuth2
+app.get('/auth/google',
+	passport.authenticate('google', { scope: [ 'profile', 'email' ] } )
+);
+
+app.get('/auth/google/callback',
+	passport.authenticate('google', {
+		successRedirect: '/main',
+		failureRedirect: '/',
+	})
+);
+
+// Logout 
 app.post('/logout', function(req, res) {
 	req.logout();
 	res.redirect('/');
 });
 
+// Return the protected page
 app.get('/main', isAuthenticated, (req, res) => {
 	res.render('main');
 });

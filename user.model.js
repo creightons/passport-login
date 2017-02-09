@@ -4,8 +4,10 @@ var mongoose = require('mongoose'),
 mongoose.Promise = require('bluebird');
 	
 var userSchema = new Schema({
-	username: { type: String, required: true, unique: true },
-	password: { type: String, required: true },
+	username: String,
+	password: String,
+	googleId: String,
+	googleToken: String,
 });
 
 var User = mongoose.model('User', userSchema);
