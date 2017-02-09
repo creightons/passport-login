@@ -54,37 +54,19 @@ app.use((req, res, next) => {
 });
 
 function isAuthenticated(req, res, next) {
-	console.log('is authenticated: ', req.isAuthenticated());
 	if (req.isAuthenticated()) { return next() };
 	return res.redirect('/');
 }
 
 app.get('/', (req, res) => res.render('index'));
 
-/*
 app.post('/login',
 	passport.authenticate('local',  { failureRedirect: '/'}),
 	(req, res) => {
 		res.redirect('/main');
 	}
 );
-*/
-
-function authenticator(req, res, next) {
-	passport.authenticate('local', function(err, user) {
-		console.log('user = ', user);
-		if (!user) { return res.redirect('/login'); }
-		req.login(user, function(err) {
-			if (err) { return next(err); }
-			console.log(req);
-			return res.redirect('/main');
-		});
-	})(req, res, next);
-}
-
-app.post('/login', authenticator);
 
 app.get('/main', isAuthenticated, (req, res) => {
-	console.log('request');
 	res.render('main');
 });
