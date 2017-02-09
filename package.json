@@ -1,11 +1,9 @@
 {
   "name": "passport-login",
   "version": "1.0.0",
-  "description": "TApp using multiple login methods",
+  "description": "Practice for logging into a webapp using multiple access methods",
   "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "author": "",
   "license": "ISC",
   "dependencies": {
