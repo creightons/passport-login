@@ -60,6 +60,11 @@ app.post('/login',
 	}
 );
 
+app.post('/logout', function(req, res) {
+	req.logout();
+	res.redirect('/');
+});
+
 app.get('/main', isAuthenticated, (req, res) => {
 	res.render('main');
 });
