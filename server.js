@@ -11,21 +11,16 @@ var express = require('express'),
 
 mongoose.connect(config.DB_URL);
 
-//RedisStore = require('connect-redis')(session);
-/*	
+RedisStore = require('connect-redis')(session);
+
 app.use(session({
 	store: new RedisStore({
 		host: config.REDIS_HOST,
 		port: config.REDIS_PORT,
 	}),
 	secret: config.REDIS_SECRET,
-}));
-*/
-
-app.use(session({
-    secret: 'keyboard cat',
-    resave: false,
-    saveUninitialized: false
+	resave: false,
+	saveUninitialized: false,
 }));
 
 app.use(bodyParser.json());
@@ -35,8 +30,6 @@ app.use(cookieParser());
 startPassport();
 app.use(passport.initialize());
 app.use(passport.session());
-
-
 
 app.use('/public', express.static('public'));
 
