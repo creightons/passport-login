@@ -7,7 +7,8 @@ var express = require('express'),
 	config = require('./config'),
 	mongoose = require('mongoose'),
 	User = require('./user.model'),
-	startPassport = require('./passport.config');
+	startPassport = require('./passport.config'),
+	{ issueToken } = require('./remember-me-utils');
 
 mongoose.connect(config.DB_URL);
 
@@ -48,6 +49,8 @@ app.use((req, res, next) => {
 	next();
 });
 
+app.use(passport.authenticate('remember-me'));
+
 function isAuthenticated(req, res, next) {
 	if (req.isAuthenticated()) { return next() };
 	return res.redirect('/');
@@ -85,6 +88,15 @@ app.post('/register', (req, res, next) => {
 // Login with local authentication
 app.post('/login',
 	passport.authenticate('local',  { failureRedirect: '/'}),
+	(req, res, next) => {
+		if (!req.body.remember_me) { return next(); }
+
+		issueToken(req.user, function(err, token) {
+			if (err) { return next(err); }
+			res.cookie('remember_me', token, { path: '/', httpOnly: true, maxAge: 604800000 });
+			return next();
+		})
+	},
 	(req, res) => {
 		res.redirect('/main');
 	}
@@ -104,6 +116,7 @@ app.get('/auth/google/callback',
 
 // Logout 
 app.post('/logout', function(req, res) {
+	res.clearCookie('remember_me');
 	req.logout();
 	res.redirect('/');
 });

@@ -1,6 +1,8 @@
 var LocalStrategy = require('passport-local').Strategy,
 	GoogleStrategy = require('passport-google-oauth').OAuth2Strategy,
+	RememberMeStrategy = require('passport-remember-me'),
 	User = require('./user.model'),
+	{ issueToken, consumeRememberMeToken } = require('./remember-me-utils'),
 	config = require('./config');
 
 
@@ -43,26 +45,41 @@ function startPassport(passport) {
 			callbackURL: config.GOOGLE_OAUTH_CALLBACK_URL,
 		}, function(accessToken, refreshToken, profile, done) {
 
-		//	process.nextTick(function() {
-				User.findOne({ googleId: profile.id }).then(user => {
-					if (user) { return done(null, user); }
+			User.findOne({ googleId: profile.id }).then(user => {
+				if (user) { return done(null, user); }
 
-					else {
-						var newUser = User({
-							googleId: profile.id,
-							googleToken: accessToken,
-						});
+				else {
+					var newUser = User({
+						googleId: profile.id,
+						googleToken: accessToken,
+					});
 
-						return newUser.save().then(() => {
-							return done(null, newUser);
-						});
-					}
+					return newUser.save().then(() => {
+						return done(null, newUser);
+					});
+				}
+			}).catch(err => {
+				return done(err);
+			});
+		})
+	);
+
+	passport.use(new RememberMeStrategy(
+		function(token, done) {
+			consumeRememberMeToken(token, function(err, uid) {
+				if(err) { return done(err); }
+				if (!uid) { return done(null, false); }
+
+				User.findById(id).then(user => {
+					if (!user) { return done(null, false); }
+					return done(user);
 				}).catch(err => {
 					return done(err);
 				});
-		//	});
-		})
-	)
+			});
+		},
+		issueToken
+	));
 
 }
 
