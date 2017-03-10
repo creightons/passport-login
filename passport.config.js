@@ -1,6 +1,6 @@
 var LocalStrategy = require('passport-local').Strategy,
 	GoogleStrategy = require('passport-google-oauth').OAuth2Strategy,
-	RememberMeStrategy = require('passport-remember-me'),
+	RememberMeStrategy = require('passport-remember-me').Strategy,
 	User = require('./user.model'),
 	{ issueToken, consumeRememberMeToken } = require('./remember-me-utils'),
 	config = require('./config');
@@ -66,16 +66,21 @@ function startPassport(passport) {
 
 	passport.use(new RememberMeStrategy(
 		function(token, done) {
-			consumeRememberMeToken(token, function(err, uid) {
-				if(err) { return done(err); }
-				if (!uid) { return done(null, false); }
+			consumeRememberMeToken(token).then(uid => {
+				if (!uid) {
+					return done(null, false);
+				}
+				else {
+					return User.findById(uid).then(user => {
+						if (!user) {
+							return done(null, false);
+						}
 
-				User.findById(id).then(user => {
-					if (!user) { return done(null, false); }
-					return done(user);
-				}).catch(err => {
-					return done(err);
-				});
+						return done(null, user);
+					});
+				}
+			}).catch(err => {
+				return done(err);
 			});
 		},
 		issueToken

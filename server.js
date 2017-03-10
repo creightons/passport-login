@@ -57,7 +57,14 @@ function isAuthenticated(req, res, next) {
 }
 
 // Get the main page
-app.get('/', (req, res) => res.render('index'));
+app.get('/', (req, res) => {
+	if (req.isAuthenticated()) {
+		res.redirect('/main');
+	}
+	else {
+		res.render('index');
+	}
+});
 
 // Get sign up page
 app.get('/register', (req, res) => res.render('register'));
@@ -92,13 +99,14 @@ app.post('/login',
 		if (!req.body.remember_me) { return next(); }
 
 		issueToken(req.user, function(err, token) {
+			console.log('testing cookie');
 			if (err) { return next(err); }
 			res.cookie('remember_me', token, { path: '/', httpOnly: true, maxAge: 604800000 });
 			return next();
 		})
 	},
 	(req, res) => {
-		res.redirect('/main');
+		res.redirect('/');
 	}
 );
 
